@@ -1,0 +1,63 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: mysql
+  labels:
+    component: mysql
+    project: expense
+    tier: database
+type: Opaque
+data:
+  MYSQL_ROOT_PASSWORD: "RXhwZW5zZUFwcEAxCg=="
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mysql
+  namespace: expense
+  # deployment labels
+  labels:
+    component: mysql
+    project: expense
+    tier: database
+spec:
+  replicas: 1
+  # These are the labels replica set use to create pod replicas, this should match pod labels
+  selector:
+    matchLabels:
+      component: mysql
+      project: expense
+      tier: database
+  # This is pod definition
+  template:
+    metadata:
+      labels:
+        component: mysql
+        project: expense
+        tier: database
+    spec:
+      containers:
+      - name: mysql
+        image: satishbandi33/expense-mysql:v1
+        envFrom:
+        - secretRef:
+            name: mysql
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql
+  namespace: expense
+  labels:
+    component: mysql
+    project: expense
+    tier: database
+spec:
+  selector:
+    component: mysql
+    project: expense
+    tier: database
+  ports:
+  - protocol: TCP
+    port: 3306 # service port
+    targetPort: 3306 # container port
