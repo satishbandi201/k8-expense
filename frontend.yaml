@@ -1,0 +1,81 @@
+# apiVersion: v1
+# kind: ConfigMap
+# metadata:
+#   name: nginx-conf
+#   namespace: expense
+#   labels:
+#     component: frontend
+#     project: expense
+#     tier: web
+# data:
+#   expense.conf: |
+#     proxy_http_version 1.1;
+
+#     location /api/ { proxy_pass http://localhost:8080/; }
+
+#     location /health {
+#       stub_status on;
+#       access_log off;
+#     }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+  namespace: expense
+  # deployment labels
+  labels:
+    component: frontend
+    project: expense
+    tier: web
+spec:
+  replicas: 1
+  # These are the labels replica set use to create pod replicas, this should match pod labels
+  selector:
+    matchLabels:
+      component: frontend
+      project: expense
+      tier: web
+  # This is pod definition
+  template:
+    metadata:
+      labels:
+        component: frontend
+        project: expense
+        tier: web
+    spec:
+      containers:
+      - name: frontend
+        image: satishbandi33/expense-frontend:v1
+      #   volumeMounts:
+      #   - name: nginx-conf
+      #     mountPath: /etc/nginx/nginx.conf
+      #     subPath: nginx.conf
+      #     readOnly: true
+      # volumes:
+      #   - name: nginx-conf
+      #     configMap:
+      #       name: nginx-conf
+      #       items:
+      #         - key: nginx.conf
+      #           path: nginx.conf
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend
+  namespace: expense
+  labels:
+    component: frontend
+    project: expense
+    tier: web
+spec:
+  type: LoadBalancer
+  selector:
+    component: frontend
+    project: expense
+    tier: web
+  ports:
+  - protocol: TCP
+    port: 80 # service port
+    targetPort: 8080 # container port

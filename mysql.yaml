@@ -10,39 +10,6 @@ type: Opaque
 data:
   MYSQL_ROOT_PASSWORD: "RXhwZW5zZUFwcEAxCg=="
 ---
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: mysql
-  namespace: expense
-  # deployment labels
-  labels:
-    component: mysql
-    project: expense
-    tier: database
-spec:
-  replicas: 1
-  # These are the labels replica set use to create pod replicas, this should match pod labels
-  selector:
-    matchLabels:
-      component: mysql
-      project: expense
-      tier: database
-  # This is pod definition
-  template:
-    metadata:
-      labels:
-        component: mysql
-        project: expense
-        tier: database
-    spec:
-      containers:
-      - name: mysql
-        image: satishbandi33/expense-mysql:v1
-        envFrom:
-        - secretRef:
-            name: mysql
----
 apiVersion: v1
 kind: Service
 metadata:
@@ -61,3 +28,69 @@ spec:
   - protocol: TCP
     port: 3306 # service port
     targetPort: 3306 # container port
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: ebs-static-expense
+spec:
+  accessModes:
+  - ReadWriteOnce
+  capacity:
+    storage: 10Gi
+  csi:
+    driver: ebs.csi.aws.com
+    fsType: ext4
+    volumeHandle: vol-0a14992eefab1306b
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: ebs-static-expense
+spec:
+  storageClassName: "" # Empty string must be explicitly set otherwise default StorageClass will be set
+  volumeName: ebs-static-expense
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mysql
+  namespace: expense
+  labels:
+    component: mysql
+    project: expense
+    tier: database
+spec:
+  selector:
+    matchLabels:
+      component: mysql
+      project: expense
+      tier: database # has to match .spec.template.metadata.labels
+  #serviceName: mysql-headless # headless service name
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        component: mysql
+        project: expense
+        tier: database # has to match .spec.selector.matchLabels
+    spec:
+      containers:
+      - name: mysql
+        image: satishbandi33/expense-mysql:v1
+        envFrom:
+        - secretRef:
+            name: mysql
+        volumeMounts:
+        - name: mysql-data
+          mountPath: /var/lib/mysql # mysql data directory
+  # This is nothing but PVC, you can directly create here
+      volumes:
+        - name: persistent-storage
+          persistentVolumeClaim:
+            claimName: ebs-static-expense
