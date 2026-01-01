@@ -80,8 +80,8 @@ spec:
         project: expense
         tier: database # has to match .spec.selector.matchLabels
     spec:
-      # nodeSelector:
-      #   topology.kubernetes.io/zone: us-east-1a
+      nodeSelector:
+        topology.kubernetes.io/zone: us-east-1a
       containers:
       - name: mysql
         image: satishbandi33/expense-mysql:v1
@@ -89,7 +89,7 @@ spec:
         - secretRef:
             name: mysql
         volumeMounts:
-        - name: mysql-data
+        - name: ebs-static-expense
           mountPath: /var/lib/mysql # mysql data directory
   # This is nothing but PVC, you can directly create here
       volumes:
