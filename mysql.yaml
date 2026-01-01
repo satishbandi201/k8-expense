@@ -56,43 +56,64 @@ spec:
     requests:
       storage: 5Gi
 ---
-apiVersion: apps/v1
-kind: StatefulSet
+apiVersion: v1
+kind: Pod
 metadata:
   name: mysql
-  namespace: expense
   labels:
     component: mysql
     project: expense
     tier: database
 spec:
-  selector:
-    matchLabels:
-      component: mysql
-      project: expense
-      tier: database # has to match .spec.template.metadata.labels
-  #serviceName: mysql-headless # headless service name
-  replicas: 1
-  template:
-    metadata:
-      labels:
-        component: mysql
-        project: expense
-        tier: database # has to match .spec.selector.matchLabels
-    spec:
-      nodeSelector:
-        topology.kubernetes.io/zone: us-east-1a
-      containers:
-      - name: mysql
-        image: satishbandi33/expense-mysql:v1
-        envFrom:
-        - secretRef:
-            name: mysql
-        volumeMounts:
-        - name: ebs-static-expense
-          mountPath: /var/lib/mysql # mysql data directory
-  # This is nothing but PVC, you can directly create here
-      volumes:
-        - name: persistent-storage
-          persistentVolumeClaim:
-            claimName: ebs-static-expense
+  nodeSelector:
+    topology.kubernetes.io/zone: us-east-1a
+  containers:
+  - name: mysql
+    image: satishbandi33/expense-mysql:v1
+    volumeMounts: # docker run -v host-path:container-path
+    - name: ebs-static-expense
+      mountPath: /var/lib/mysql
+  volumes:
+  - name: ebs-static-expense
+    persistentVolumeClaim:
+      claimName: ebs-static-expense
+# apiVersion: apps/v1
+# kind: StatefulSet
+# metadata:
+#   name: mysql
+#   namespace: expense
+#   labels:
+#     component: mysql
+#     project: expense
+#     tier: database
+# spec:
+#   selector:
+#     matchLabels:
+#       component: mysql
+#       project: expense
+#       tier: database # has to match .spec.template.metadata.labels
+#   #serviceName: mysql-headless # headless service name
+#   replicas: 1
+#   template:
+#     metadata:
+#       labels:
+#         component: mysql
+#         project: expense
+#         tier: database # has to match .spec.selector.matchLabels
+#     spec:
+#       nodeSelector:
+#         topology.kubernetes.io/zone: us-east-1a
+#       containers:
+#       - name: mysql
+#         image: satishbandi33/expense-mysql:v1
+#         envFrom:
+#         - secretRef:
+#             name: mysql
+#         volumeMounts:
+#         - name: ebs-static-expense
+#           mountPath: /var/lib/mysql # mysql data directory
+#   # This is nothing but PVC, you can directly create here
+#       volumes:
+#         - name: persistent-storage
+#           persistentVolumeClaim:
+#             claimName: ebs-static-expense
