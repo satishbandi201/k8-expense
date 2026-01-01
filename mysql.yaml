@@ -48,7 +48,7 @@ kind: PersistentVolumeClaim
 metadata:
   name: ebs-static-expense
 spec:
-  storageClassName: "" # Empty string must be explicitly set otherwise default StorageClass will be set
+  #storageClassName: "" # Empty string must be explicitly set otherwise default StorageClass will be set
   volumeName: ebs-static-expense
   accessModes:
     - ReadWriteOnce
