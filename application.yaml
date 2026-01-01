@@ -57,7 +57,7 @@ spec:
     spec:
       containers:
       - name: backend
-        image: satishbandi33/backend:v1
+        image: satishbandi33/expense-backend:v1
         envFrom:
         - configMapRef:
             name: backend
