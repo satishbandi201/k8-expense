@@ -80,8 +80,8 @@ spec:
         project: expense
         tier: database # has to match .spec.selector.matchLabels
     spec:
-      nodeSelector:
-        topology.kubernetes.io/zone: us-east-1a
+      # nodeSelector:
+      #   topology.kubernetes.io/zone: us-east-1a
       containers:
       - name: mysql
         image: satishbandi33/expense-mysql:v1
